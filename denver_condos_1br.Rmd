@@ -1,0 +1,78 @@
+---
+title: "Denver 1 Bedroom Condos 80202"
+author: "Matt Majestic"
+date: "Feb 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(flexdashboard)
+library(Quandl)
+library(ggplot2)
+library(plotly)
+library(dplyr)
+library(lubridate)
+library(tidyr)
+library(DT)
+library(dygraphs)
+
+Quandl.api_key('JJLzxHGAE8n9mFR1pLbb')
+
+Zillow_Listing_Median <- Quandl('ZILLOW/Z80202_MLP1B')
+Zillow_ValueIndex <- Quandl('ZILLOW/Z80202_ZHVI1B')
+Zillow_HVI_PriceCut_Median <- Quandl('ZILLOW/Z80202_MPCDCO')
+
+listing_pivot <- Zillow_Listing_Median %>% filter(Date > "2018-12-31") %>% mutate(Year = year(Date),Month = month(Date)) 
+annual_growth <- listing_pivot %>% filter(Month == 1 | Month == 12) 
+annual_growth_percent <- data.frame("Annual Growth Percentage" = ((annual_growth[1,"Value"] -annual_growth[2,"Value"]) / annual_growth[1,"Value"]))
+Listing_lp <- ggplotly(ggplot(Zillow_Listing_Median,aes(Date,Value)) + geom_line() + geom_point() + labs(title = 'Zillow Median Listing Prices'))
+HVI_lp <- ggplotly(ggplot(Zillow_ValueIndex,aes(Date,Value)) + geom_line() + geom_point() + labs(title = 'Zillow HVI from Purchase Date to Present'))
+HVI_Pricecut_lp <- ggplotly(ggplot(Zillow_HVI_PriceCut_Median,aes(Date,Value)) + geom_line() + geom_point() + labs(title = 'Zillow HVI Median Price Cut for Condos 80202'))
+
+```
+## Synopsis 
+
+Based on this evaluation, Unit 1001 of 444 17th St Denver, CO 80202 is worth **$275,000** as the housing market data from **Zillow** suggests flat/slightly negative metrics of the growth for 1 bedroom units in 80202.  This property was bought for **$269,000** slightly over a year ago.  Therefore an offer of **$275,000** is a reasonable price for both parties as the seller nets **$6,000** in slightly over a year **without conducting any major renovations** especially given the **flat trends from the Zillow Housing Data** below.    
+
+
+## Median Listing Price
+
+The median price since the unit has been purchased has decreased by **-1 %**
+
+
+```{r list_lp,echo =FALSE}
+Listing_lp
+```
+
+### The median listing prices from purchase to end of 2019 (YoY)
+```{r dt,echo =FALSE}
+datatable(annual_growth %>% select(Date,Value),rownames = FALSE,options = list(searching = FALSE)) %>% formatCurrency("Value",digits = 0)
+```
+
+### Growth since Purchase
+```{r percent,echo =FALSE}
+datatable(annual_growth_percent,rownames = FALSE,options = list(searching = FALSE)) %>% formatPercentage("Annual.Growth.Percentage",digits = 3)
+```
+
+## The **Zillow Home Value Index** since the unit has been bought in 2019
+
+#### Zillow HVI is flat/slightly negative since 2019
+
+```{r hvi, echo=FALSE}
+HVI_lp
+```
+
+## The **Zillow Home Value Index** suggests the median price cut be **at least $10K**
+
+#### The suggested offer of **$275,000** coincides with the proposed logic
+
+```{r hvi_pc, echo=FALSE}
+HVI_Pricecut_lp
+```
+
+## Conclusion
+
+#### The data provided by Zillow reflects the market for 444 17th Street Denver, CO 80202 being flat which makes the unit of 1001 worth **$275,000** as **no major renovations had been conducted** in the year of ownership.
+
+Note all this data is from Zillow's API via Quandl
